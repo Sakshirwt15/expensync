@@ -70,7 +70,7 @@ router.get(
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
-// Google Callback
+// Google Callback - UPDATED FOR VERCEL
 router.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/login" }),
@@ -80,11 +80,24 @@ router.get(
         expiresIn: "1h",
       });
 
+      // ✅ UPDATED: Dynamic frontend URL based on environment
+      const frontendURL = process.env.NODE_ENV === 'production' 
+        ? 'https://expensync-eta.vercel.app'  // Your Vercel URL
+        : 'http://localhost:5173';           // Development URL
+
+      console.log(`🔗 Redirecting to: ${frontendURL}/dashboard?token=${token}`);
+      
       // Redirect to frontend dashboard with token
-      res.redirect(`http://localhost:5173/dashboard?token=${token}`);
+      res.redirect(`${frontendURL}/dashboard?token=${token}`);
     } catch (error) {
       console.error("Google callback error:", error);
-      res.redirect("http://localhost:5173/login?error=auth_failed");
+      
+      // ✅ UPDATED: Same dynamic URL for error redirect
+      const frontendURL = process.env.NODE_ENV === 'production' 
+        ? 'https://expensync-eta.vercel.app' 
+        : 'http://localhost:5173';
+      
+      res.redirect(`${frontendURL}/login?error=auth_failed`);
     }
   }
 );

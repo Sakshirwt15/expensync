@@ -14,7 +14,10 @@ const PORT = process.env.PORT || 5000;
 // ========================
 app.use(
   cors({
-    origin: "http://localhost:5173", // ✅ Changed for Vite frontend
+    origin: [
+      "http://localhost:5173",
+      "https://expensync-eta.vercel.app", // ✅ Ye tumhara Vercel URL
+    ],
     credentials: true,
   })
 );
