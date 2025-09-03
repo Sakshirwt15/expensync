@@ -3,7 +3,10 @@ const router = express.Router();
 const { setCategoryGoal, getCategoryGoals } = require("../controllers/categoryBudgetController");
 const authMiddleware = require("../middleware/auth");
 
-router.post("/set", authMiddleware, setCategoryGoal);
+// Set category-specific budget
+router.post("/", authMiddleware, setCategoryGoal);
+
+// Get category-specific budgets
 router.get("/", authMiddleware, getCategoryGoals);
 
 module.exports = router;

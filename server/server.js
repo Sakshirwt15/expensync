@@ -3,121 +3,50 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const passport = require("passport");
 const session = require("express-session");
-const MongoStore = require("connect-mongo"); // Add this for production session store
 require("dotenv").config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
-// ========================
-// Middlewares
-// ========================
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "https://expensync-eta.vercel.app", // ✅ Your Vercel URL
-    ],
-    credentials: true,
-  })
-);
+// Middleware
 app.use(express.json());
+app.use(cors({ origin: ["http://localhost:5173", "https://expensync-eta.vercel.app"], credentials: true }));
 
-// Session middleware with production-ready store
+// Express session (required for passport)
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "your-secret-key",
+    secret: process.env.SESSION_SECRET || "defaultsecret",
     resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI,
-    }),
-    cookie: {
-      secure: process.env.NODE_ENV === "production", // HTTPS in production
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    },
+    saveUninitialized: true,
   })
 );
 
-// Passport middleware
+// Initialize passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ========================
-// API Test Route
-// ========================
-app.get("/", (req, res) => {
-  res.json({ 
-    message: "✅ ExpenseSync API is running!", 
-    status: "healthy",
-    environment: process.env.NODE_ENV || "development"
-  });
-});
-
-// Health check endpoint
-app.get("/api/health", (req, res) => {
-  res.json({ 
-    status: "OK", 
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime() 
-  });
-});
-
-// ========================
-// MongoDB Connection
-// ========================
+// Connect MongoDB
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.error("❌ MongoDB error:", err));
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-// ========================
-// API Routes
-// ========================
+// Routes
 app.use("/api/auth", require("./routes/auth"));
-app.use("/api/transactions", require("./routes/transactions"));
-app.use("/api/budgets", require("./routes/budgets"));
-app.use("/api/category-goals", require("./routes/categoryBudgetRoutes"));
-app.use("/api/debts", require("./routes/debts"));
+app.use("/api/budget", require("./routes/budget"));
+app.use("/api/category-budget", require("./routes/categoryBudget"));
+app.use("/api/debt", require("./routes/debt"));
+app.use("/api/reminder", require("./routes/reminder"));
 app.use("/api/summary", require("./routes/summary"));
-app.use("/api/reminders", require("./routes/reminders"));
+app.use("/api/transactions", require("./routes/transaction"));
 
-// ========================
-// Dashboard Route
-// ========================
-app.get("/api/dashboard", (req, res) => {
-  try {
-    res.json({
-      message: "✅ Dashboard data fetched successfully",
-      stats: {
-        totalIncome: 12000, // dummy data for now
-        totalExpenses: 7500,
-        savings: 4500,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ error: "Server error fetching dashboard" });
-  }
+// Default route
+app.get("/", (req, res) => {
+  res.send("🚀 ExpenseSync API is running...");
 });
 
-// ========================
-// 404 Handler for undefined API routes
-// ========================
-app.use("/api/*", (req, res) => {
-  res.status(404).json({ error: "API endpoint not found" });
-});
-
-// ========================
-// Global Error Handler
-// ========================
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong!" });
-});
-
-// ========================
-// Start Server
-// ========================
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));

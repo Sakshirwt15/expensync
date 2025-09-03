@@ -1,60 +1,38 @@
-const CategoryBudgetGoal = require("../models/CategoryBudgetGoal");
 const Transaction = require("../models/Transaction");
+const Budget = require("../models/Budget");
+const CategoryBudgetGoal = require("../models/CategoryBudgetGoal");
 
-// Get Budget Summary for the user
-const getBudgetSummary = async (req, res) => {
-    try {
-        // Extract user ID from req.user object
-        let userId;
-        if (typeof req.user === 'string') {
-            userId = req.user;
-        } else if (req.user && req.user.id) {
-            userId = req.user.id;
-        } else if (req.user && req.user._id) {
-            userId = req.user._id;
-        } else {
-            return res.status(401).json({ message: "Invalid user authentication data" });
-        }
-        
-        // Add validation to ensure we have a valid user ID
-        if (!userId) {
-            return res.status(401).json({ message: "User not authenticated" });
-        }
+const getSummary = async (req, res) => {
+  try {
+    const userId = req.user.id;
 
-        // Fetch all category goals for the user
-        const goals = await CategoryBudgetGoal.find({ user: userId });
+    // Fetch transactions for user
+    const transactions = await Transaction.find({ user: userId });
 
-        // Calculate Total Budget (sum of all category goals)
-        const totalBudget = goals.reduce((acc, goal) => acc + goal.goal, 0);
+    // Calculate totals
+    const totalIncome = transactions
+      .filter(t => t.type === "income")
+      .reduce((acc, t) => acc + t.amount, 0);
 
-        // Fetch all transactions (expenses and income) for the user
-        const transactions = await Transaction.find({ userId: userId });
+    const totalExpense = transactions
+      .filter(t => t.type === "expense")
+      .reduce((acc, t) => acc + t.amount, 0);
 
-        // Calculate Total Expenses (sum of all expense transactions)
-        const totalExpenses = transactions
-            .filter((transaction) => transaction.amount < 0)
-            .reduce((acc, transaction) => acc + Math.abs(transaction.amount), 0);
+    // Get budgets
+    const budgets = await Budget.find({ user: userId });
+    const categoryGoals = await CategoryBudgetGoal.find({ user: userId });
 
-        const totalIncome = transactions
-            .filter((transaction) => transaction.amount > 0)
-            .reduce((acc, transaction) => acc + transaction.amount, 0);
-
-        // Calculate Savings (Total Budget - Total Expenses)
-        const savings = totalBudget - totalExpenses;
-
-        // Respond with the summary data
-        res.status(200).json({
-            totalIncome,
-            totalExpenses,
-            totalBudget,
-            savings,
-        });
-    } catch (error) {
-        console.error("Error fetching budget summary:", error);
-        res.status(500).json({ message: "Error fetching summary", error: error.message });
-    }
+    res.json({
+      totalIncome,
+      totalExpense,
+      savings: totalIncome - totalExpense,
+      budgets,
+      categoryGoals,
+    });
+  } catch (err) {
+    console.error("❌ Error fetching summary:", err);
+    res.status(500).json({ message: "Server error fetching summary" });
+  }
 };
 
-module.exports = {
-    getBudgetSummary,
-};
+module.exports = { getSummary };

@@ -8,244 +8,84 @@ export const API_CONFIG = {
 // Get token from localStorage
 export const getToken = () => localStorage.getItem("token");
 
-// Create axios instance with proper configuration
+// Create axios instance
 const api = axios.create({
   baseURL: API_CONFIG.baseURL,
   timeout: API_CONFIG.timeout,
 });
 
-// Request interceptor to add auth token
+// Request interceptor
 api.interceptors.request.use(
   (config) => {
     const token = getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('🔐 Token added to request:', token.substring(0, 20) + '...');
-    } else {
-      console.log('⚠️ NO TOKEN FOUND for request to:', config.url);
+      console.log('🔐 Token added:', token.substring(0, 20) + '...');
     }
-    console.log(`Making ${config.method?.toUpperCase()} request to: ${config.url}`);
+    console.log(`➡️ ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
-  (error) => {
-    console.error('Request interceptor error:', error);
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor for error handling
+// Response interceptor
 api.interceptors.response.use(
-  (response) => {
-    console.log(`✅ Success: ${response.config.method?.toUpperCase()} ${response.config.url}`);
-    return response;
-  },
+  (response) => response,
   (error) => {
     console.error('❌ API Error:', {
       url: error.config?.url,
-      method: error.config?.method,
       status: error.response?.status,
       message: error.message,
-      token: getToken() ? 'Token exists' : 'No token'
     });
 
-    // Handle 401 errors globally
     if (error.response?.status === 401) {
-      console.warn('🔒 Authentication failed - clearing token');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      if (window.location.pathname !== '/login' && window.location.pathname !== '/signup') {
+      if (!['/login', '/signup'].includes(window.location.pathname)) {
         window.location.href = '/login';
       }
     }
-
     return Promise.reject(error);
   }
 );
 
-// ============================================================================
-// API FUNCTIONS - Use these in your components instead of direct axios calls
-// ============================================================================
+//
+// ========== API FUNCTIONS ==========
+//
 
-// Auth Functions
-export const loginUser = async (credentials) => {
-  try {
-    const response = await api.post('/auth/login', credentials);
-    return response.data;
-  } catch (error) {
-    console.error('❌ Login failed:', error);
-    throw error;
-  }
-};
+// Auth
+export const loginUser = (credentials) => api.post('/auth/login', credentials).then(r => r.data);
+export const signupUser = (userData) => api.post('/auth/signup', userData).then(r => r.data);
 
-export const signupUser = async (userData) => {
-  try {
-    const response = await api.post('/auth/signup', userData);
-    return response.data;
-  } catch (error) {
-    console.error('❌ Signup failed:', error);
-    throw error;
-  }
-};
+// Transactions
+export const createTransaction = (data) => api.post('/transactions', data).then(r => r.data);
+export const getTransactions = () => api.get('/transactions').then(r => r.data);
+export const getTransactionSummary = () => api.get('/transactions/summary').then(r => r.data);
 
-// Dashboard Functions
-export const getDashboardData = async () => {
-  try {
-    const response = await api.get('/dashboard');
-    return response.data;
-  } catch (error) {
-    console.error('❌ Failed to fetch dashboard data:', error);
-    throw error;
-  }
-};
+// Budget
+export const setBudgetGoal = (data) => api.post('/budget/set', data).then(r => r.data);
+export const getBudgetGoals = () => api.get('/budget').then(r => r.data);
+export const deleteBudgetGoal = (category) => api.delete(`/budget/${category}`).then(r => r.data);
 
-// Transaction Functions
-export const createTransaction = async (transactionData) => {
-  try {
-    const response = await api.post('/transactions/create', transactionData);
-    console.log('✅ Transaction created successfully:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('❌ Failed to create transaction:', error);
-    throw error;
-  }
-};
+// Category Budget
+export const setCategoryBudget = (data) => api.post('/category-budget', data).then(r => r.data);
+export const getCategoryBudgets = () => api.get('/category-budget').then(r => r.data);
 
-export const getTransactions = async () => {
-  try {
-    const response = await api.get('/transactions');
-    return response.data;
-  } catch (error) {
-    console.error('❌ Failed to fetch transactions:', error);
-    throw error;
-  }
-};
+// Debt
+export const createDebt = (data) => api.post('/debt', data).then(r => r.data);
+export const getDebts = () => api.get('/debt').then(r => r.data);
+export const deleteDebt = (id) => api.delete(`/debt/${id}`).then(r => r.data);
 
-export const getTransactionSummary = async () => {
-  try {
-    const response = await api.get('/transactions/summary');
-    return response.data;
-  } catch (error) {
-    console.error('❌ Failed to fetch transaction summary:', error);
-    throw error;
-  }
-};
+// Summary
+export const getSummary = () => api.get('/summary').then(r => r.data);
 
-// Budget/Category Functions
-export const setBudgetGoal = async (budgetData) => {
-  try {
-    const response = await api.post('/category-goals/set', budgetData);
-    return response.data;
-  } catch (error) {
-    console.error('❌ Failed to set budget goal:', error);
-    throw error;
-  }
-};
+// Reminder
+export const createReminder = (data) => api.post('/reminder/create', data).then(r => r.data);
+export const getReminders = () => api.get('/reminder').then(r => r.data);
+export const deleteReminder = (id) => api.delete(`/reminder/${id}`).then(r => r.data);
 
-export const getBudgetGoals = async () => {
-  try {
-    const response = await api.get('/category-goals');
-    return response.data;
-  } catch (error) {
-    console.error('❌ Failed to fetch budget goals:', error);
-    throw error;
-  }
-};
+// Health check
+export const healthCheck = () => axios.get('https://expensync-qru8.onrender.com/').then(r => r.data);
 
-// Debt Functions
-export const createDebt = async (debtData) => {
-  try {
-    const response = await api.post('/debts/create', debtData);
-    return response.data;
-  } catch (error) {
-    console.error('❌ Failed to create debt:', error);
-    throw error;
-  }
-};
-
-export const getDebts = async () => {
-  try {
-    const response = await api.get('/debts');
-    return response.data;
-  } catch (error) {
-    console.error('❌ Failed to fetch debts:', error);
-    throw error;
-  }
-};
-
-export const deleteDebt = async (debtId) => {
-  try {
-    const response = await api.delete(`/debts/${debtId}`);
-    return response.data;
-  } catch (error) {
-    console.error('❌ Failed to delete debt:', error);
-    throw error;
-  }
-};
-
-// Summary Functions
-export const getSummary = async () => {
-  try {
-    const response = await api.get('/summary');
-    return response.data;
-  } catch (error) {
-    console.error('❌ Failed to fetch summary:', error);
-    throw error;
-  }
-};
-
-// Reminder Functions
-export const getReminders = async () => {
-  try {
-    const response = await api.get('/reminders');
-    return response.data;
-  } catch (error) {
-    console.error('❌ Failed to fetch reminders:', error);
-    throw error;
-  }
-};
-
-export const createReminder = async (reminderData) => {
-  try {
-    const response = await api.post('/reminders/create', reminderData);
-    return response.data;
-  } catch (error) {
-    console.error('❌ Failed to create reminder:', error);
-    throw error;
-  }
-};
-
-// Budget Functions
-export const getBudgets = async () => {
-  try {
-    const response = await api.get('/budgets');
-    return response.data;
-  } catch (error) {
-    console.error('❌ Failed to fetch budgets:', error);
-    throw error;
-  }
-};
-
-export const createBudget = async (budgetData) => {
-  try {
-    const response = await api.post('/budgets/create', budgetData);
-    return response.data;
-  } catch (error) {
-    console.error('❌ Failed to create budget:', error);
-    throw error;
-  }
-};
-
-// Health Check
-export const healthCheck = async () => {
-  try {
-    const response = await axios.get('https://expensync-qru8.onrender.com/');
-    return response.data;
-  } catch (error) {
-    console.error('❌ Health check failed:', error);
-    throw error;
-  }
-};
-
-// Export the configured API instance
 export { api };
 export default api;

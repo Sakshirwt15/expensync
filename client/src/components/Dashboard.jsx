@@ -15,12 +15,12 @@ import BudgetGoalProgress from "./BudgetGoalProgress";
 import DebtOverview from "./DebtOverview";
 import NetWorthCard from "./NetWorthCard";
 import Layout from "./Layout";
-// ✅ Import the centralized API functions instead of the api instance
+// ✅ Import centralized API functions
 import {
-  getDashboardData,
   getTransactions,
   getBudgetGoals,
   getDebts,
+  getSummaryData, // ✅ fixed name
 } from "../api/api";
 
 const Dashboard = () => {
@@ -75,31 +75,34 @@ const Dashboard = () => {
     setError(null);
 
     try {
-      // ✅ Use the centralized API functions instead of direct api calls
-      const [dashboardRes, transactionsRes, budgetRes, debtsRes] =
+      const [summaryRes, transactionsRes, budgetRes, debtsRes] =
         await Promise.all([
-          getDashboardData(),
+          getSummaryData(), // ✅ fixed call
           getTransactions(),
           getBudgetGoals(),
           getDebts(),
         ]);
 
-      // ✅ Handle dashboard response
-      if (dashboardRes.stats) {
-        setTotalIncome(dashboardRes.stats.totalIncome || 0);
-        setTotalExpense(dashboardRes.stats.totalExpenses || 0);
+      // ✅ Handle summary response
+      if (summaryRes?.data) {
+        setTotalIncome(summaryRes.data.totalIncome || 0);
+        setTotalExpense(summaryRes.data.totalExpenses || 0);
       }
 
       // ✅ Handle transactions response
-      setTransactions(Array.isArray(transactionsRes) ? transactionsRes : []);
+      setTransactions(
+        Array.isArray(transactionsRes?.data) ? transactionsRes.data : []
+      );
 
       // ✅ Handle budget goals response
       setBudgetGoals(
-        Array.isArray(budgetRes?.categoryGoals) ? budgetRes.categoryGoals : []
+        Array.isArray(budgetRes?.data?.categoryGoals)
+          ? budgetRes.data.categoryGoals
+          : []
       );
 
       // ✅ Handle debts response
-      setDebts(Array.isArray(debtsRes) ? debtsRes : []);
+      setDebts(Array.isArray(debtsRes?.data) ? debtsRes.data : []);
     } catch (err) {
       console.error("Data fetch error:", err);
       if (err.response?.status === 401) {
@@ -171,6 +174,7 @@ const Dashboard = () => {
 
   return (
     <Layout>
+      {/* ✅ Keeping your existing UI unchanged */}
       <div
         className={`p-8 transition-all duration-500 ${
           showModal ? "blur-sm pointer-events-none" : ""
