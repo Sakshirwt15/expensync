@@ -13,6 +13,9 @@ const Charts = () => {
   const [error, setError] = useState(null);
   const [usingSampleData, setUsingSampleData] = useState(false);
 
+  // Get API URL from environment variable
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   // Sample data for testing
   const sampleTransactions = [
     {
@@ -73,12 +76,10 @@ const Charts = () => {
           throw new Error("No authentication token found. Please login.");
         }
 
-        console.log(
-          "🔄 Fetching data from:",
-          "http://localhost:5000/api/transactions"
-        );
+        const apiUrl = `${API_BASE_URL}/api/transactions`;
+        console.log("🔄 Fetching data from:", apiUrl);
 
-        const res = await axios.get("http://localhost:5000/api/transactions", {
+        const res = await axios.get(apiUrl, {
           headers: { Authorization: `Bearer ${token}` },
           timeout: 10000,
         });
@@ -130,7 +131,7 @@ const Charts = () => {
     };
 
     fetchData();
-  }, []);
+  }, [API_BASE_URL]);
 
   if (loading) {
     return (
@@ -175,6 +176,7 @@ const Charts = () => {
             Debug Info:
           </h4>
           <div className="text-sm text-gray-700 dark:text-gray-300">
+            <p>• API URL: {API_BASE_URL}</p>
             <p>
               • Total Transactions: {transactions.length}{" "}
               {usingSampleData ? "(Sample)" : "(Real)"}

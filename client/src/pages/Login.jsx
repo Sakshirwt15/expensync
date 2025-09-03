@@ -8,6 +8,9 @@ const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
 
+  // Get API URL from environment variable
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -25,8 +28,9 @@ const Login = () => {
 
     try {
       console.log("Attempting login with:", { email: formData.email });
+      console.log("Using API URL:", API_BASE_URL);
 
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -62,8 +66,8 @@ const Login = () => {
 
   // Handle Google login
   const handleGoogleLogin = () => {
-    // Redirect to Google OAuth endpoint on your local backend
-    window.location.href = "http://localhost:5000/api/auth/google";
+    // Use environment variable for Google OAuth endpoint
+    window.location.href = `${API_BASE_URL}/api/auth/google`;
   };
 
   return (

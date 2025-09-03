@@ -1,4 +1,4 @@
-import { useEffect } from "react"; // 👈 Add this
+import { useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
 import styles from "../style";
 import Layout from "../components/Layout";
@@ -16,13 +16,23 @@ import Footer from "../components/Footer";
 const Landing = () => {
   const { theme } = useTheme();
 
-  // ✅ Test backend connection
+  // Get API URL from environment variable
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+  // Test backend connection
   useEffect(() => {
-    fetch("http://localhost:5000/")
+    console.log("Testing backend connection to:", API_BASE_URL);
+
+    fetch(API_BASE_URL)
       .then((res) => res.text())
-      .then((data) => console.log("Backend says:", data))
-      .catch((err) => console.error("❌ Backend error:", err));
-  }, []);
+      .then((data) => {
+        console.log("✅ Backend connection successful:", data);
+      })
+      .catch((err) => {
+        console.error("❌ Backend connection failed:", err);
+        console.error("Make sure your backend is running at:", API_BASE_URL);
+      });
+  }, [API_BASE_URL]);
 
   return (
     <div

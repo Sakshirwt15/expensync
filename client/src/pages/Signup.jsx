@@ -12,6 +12,9 @@ const Signup = () => {
   });
   const [loading, setLoading] = useState(false);
 
+  // Get API URL from environment variable
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   // Handle input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -37,9 +40,9 @@ const Signup = () => {
 
     try {
       console.log("Attempting signup with:", formData);
+      console.log("Using API URL:", API_BASE_URL);
 
-      // 🔥 FIXED: Changed to local backend URL
-      const res = await fetch("http://localhost:5000/api/auth/signup", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -71,10 +74,9 @@ const Signup = () => {
   };
 
   // Handle Google signup
-  // Handle Google signup
   const handleGoogleSignup = () => {
-    // Redirect to the correct backend Google OAuth endpoint
-    window.location.href = "http://localhost:5000/api/auth/google";
+    // Use environment variable for Google OAuth endpoint
+    window.location.href = `${API_BASE_URL}/api/auth/google`;
   };
 
   return (
