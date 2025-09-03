@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const passport = require("passport");
 const session = require("express-session");
-const path = require("path");
+const MongoStore = require("connect-mongo"); // Add this for production session store
 require("dotenv").config();
 
 const app = express();
@@ -16,21 +16,24 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://expensync-eta.vercel.app", // ✅ Ye tumhara Vercel URL
+      "https://expensync-eta.vercel.app", // ✅ Your Vercel URL
     ],
     credentials: true,
   })
 );
 app.use(express.json());
 
-// Session middleware (required for Passport)
+// Session middleware with production-ready store
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "your-secret-key",
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI,
+    }),
     cookie: {
-      secure: false, // Set to true in production with HTTPS
+      secure: process.env.NODE_ENV === "production", // HTTPS in production
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   })
@@ -40,20 +43,24 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Serve static files from React build (for production)
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "build")));
-}
-
 // ========================
-// Test Route
+// API Test Route
 // ========================
 app.get("/", (req, res) => {
-  if (process.env.NODE_ENV === "production") {
-    res.sendFile(path.join(__dirname, "build", "index.html"));
-  } else {
-    res.send("API running 🎯");
-  }
+  res.json({ 
+    message: "✅ ExpenseSync API is running!", 
+    status: "healthy",
+    environment: process.env.NODE_ENV || "development"
+  });
+});
+
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+  res.json({ 
+    status: "OK", 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime() 
+  });
 });
 
 // ========================
@@ -76,7 +83,7 @@ app.use("/api/summary", require("./routes/summary"));
 app.use("/api/reminders", require("./routes/reminders"));
 
 // ========================
-// NEW Dashboard Route
+// Dashboard Route
 // ========================
 app.get("/api/dashboard", (req, res) => {
   try {
@@ -94,13 +101,19 @@ app.get("/api/dashboard", (req, res) => {
 });
 
 // ========================
-// Handle React routing (Production)
+// 404 Handler for undefined API routes
 // ========================
-if (process.env.NODE_ENV === "production") {
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "build", "index.html"));
-  });
-}
+app.use("/api/*", (req, res) => {
+  res.status(404).json({ error: "API endpoint not found" });
+});
+
+// ========================
+// Global Error Handler
+// ========================
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "Something went wrong!" });
+});
 
 // ========================
 // Start Server
