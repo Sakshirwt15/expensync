@@ -1,5 +1,6 @@
 const Transaction = require("../models/Transaction");
 
+// @desc Create new transaction
 const createTransaction = async (req, res) => {
   try {
     const { type, amount, category, description, date } = req.body;
@@ -26,6 +27,7 @@ const createTransaction = async (req, res) => {
   }
 };
 
+// @desc Get all transactions
 const getTransactions = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -37,6 +39,7 @@ const getTransactions = async (req, res) => {
   }
 };
 
+// @desc Delete transaction
 const deleteTransaction = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -55,4 +58,31 @@ const deleteTransaction = async (req, res) => {
   }
 };
 
-module.exports = { createTransaction, getTransactions, deleteTransaction };
+// @desc Get transaction summary (category-wise total)
+const getTransactionSummary = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const summary = await Transaction.aggregate([
+      { $match: { user: userId } },
+      {
+        $group: {
+          _id: "$category",
+          total: { $sum: "$amount" },
+        },
+      },
+    ]);
+
+    res.json(summary);
+  } catch (err) {
+    console.error("❌ Error fetching summary:", err);
+    res.status(500).json({ message: "Server error fetching summary" });
+  }
+};
+
+module.exports = { 
+  createTransaction, 
+  getTransactions, 
+  deleteTransaction, 
+  getTransactionSummary 
+};

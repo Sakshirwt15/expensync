@@ -8,9 +8,12 @@ const authMiddleware = (req, res, next) => {
   }
 
   try {
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET is not defined");
+    }
+
     const decoded = jwt.verify(token.replace("Bearer ", ""), process.env.JWT_SECRET);
 
-    // ✅ req.user will always be { id: userId }
     req.user = { id: decoded.userId };
 
     next();
