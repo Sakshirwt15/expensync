@@ -35,12 +35,12 @@ mongoose
 
 // Routes
 app.use("/api/auth", require("./routes/auth"));
-app.use("/api/budget", require("./routes/budget"));
-app.use("/api/category-budget", require("./routes/categoryBudget"));
-app.use("/api/debt", require("./routes/debt"));
-app.use("/api/reminder", require("./routes/reminder"));
+app.use("/api/budget", require("./routes/budgets")); // fixed
+app.use("/api/category-budget", require("./routes/categoryBudgetRoutes")); // fixed
+app.use("/api/debt", require("./routes/debts")); // fixed
+app.use("/api/reminder", require("./routes/reminders")); // fixed
 app.use("/api/summary", require("./routes/summary"));
-app.use("/api/transactions", require("./routes/transaction"));
+app.use("/api/transactions", require("./routes/transactions")); // fixed
 
 // Default route
 app.get("/", (req, res) => {
