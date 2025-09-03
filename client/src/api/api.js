@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const API_CONFIG = {
-   baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL || 'https://expensync-qru8.onrender.com/api',
   timeout: 10000,
 };
 
@@ -53,7 +53,6 @@ api.interceptors.response.use(
       console.warn('🔒 Authentication failed - clearing token');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      // Optionally redirect to login
       if (window.location.pathname !== '/login' && window.location.pathname !== '/signup') {
         window.location.href = '/login';
       }
@@ -63,9 +62,43 @@ api.interceptors.response.use(
   }
 );
 
-// API FUNCTIONS - Add these to match what your components are importing
+// ============================================================================
+// API FUNCTIONS - Use these in your components instead of direct axios calls
+// ============================================================================
 
-// Create a new transaction
+// Auth Functions
+export const loginUser = async (credentials) => {
+  try {
+    const response = await api.post('/auth/login', credentials);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Login failed:', error);
+    throw error;
+  }
+};
+
+export const signupUser = async (userData) => {
+  try {
+    const response = await api.post('/auth/signup', userData);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Signup failed:', error);
+    throw error;
+  }
+};
+
+// Dashboard Functions
+export const getDashboardData = async () => {
+  try {
+    const response = await api.get('/dashboard');
+    return response.data;
+  } catch (error) {
+    console.error('❌ Failed to fetch dashboard data:', error);
+    throw error;
+  }
+};
+
+// Transaction Functions
 export const createTransaction = async (transactionData) => {
   try {
     const response = await api.post('/transactions/create', transactionData);
@@ -77,7 +110,6 @@ export const createTransaction = async (transactionData) => {
   }
 };
 
-// Get all transactions for the user
 export const getTransactions = async () => {
   try {
     const response = await api.get('/transactions');
@@ -88,18 +120,27 @@ export const getTransactions = async () => {
   }
 };
 
-// Get user summary (income/expenses)
-export const getSummary = async () => {
+export const getTransactionSummary = async () => {
   try {
-    const response = await api.get('/summary/summary');
+    const response = await api.get('/transactions/summary');
     return response.data;
   } catch (error) {
-    console.error('❌ Failed to fetch summary:', error);
+    console.error('❌ Failed to fetch transaction summary:', error);
     throw error;
   }
 };
 
-// Get budget goals
+// Budget/Category Functions
+export const setBudgetGoal = async (budgetData) => {
+  try {
+    const response = await api.post('/category-goals/set', budgetData);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Failed to set budget goal:', error);
+    throw error;
+  }
+};
+
 export const getBudgetGoals = async () => {
   try {
     const response = await api.get('/category-goals');
@@ -110,7 +151,17 @@ export const getBudgetGoals = async () => {
   }
 };
 
-// Get debts
+// Debt Functions
+export const createDebt = async (debtData) => {
+  try {
+    const response = await api.post('/debts/create', debtData);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Failed to create debt:', error);
+    throw error;
+  }
+};
+
 export const getDebts = async () => {
   try {
     const response = await api.get('/debts');
@@ -121,6 +172,80 @@ export const getDebts = async () => {
   }
 };
 
-// Keep the default export for the axios instance
-export { api }; // Add this line
-export default api; // Keep this too
+export const deleteDebt = async (debtId) => {
+  try {
+    const response = await api.delete(`/debts/${debtId}`);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Failed to delete debt:', error);
+    throw error;
+  }
+};
+
+// Summary Functions
+export const getSummary = async () => {
+  try {
+    const response = await api.get('/summary');
+    return response.data;
+  } catch (error) {
+    console.error('❌ Failed to fetch summary:', error);
+    throw error;
+  }
+};
+
+// Reminder Functions
+export const getReminders = async () => {
+  try {
+    const response = await api.get('/reminders');
+    return response.data;
+  } catch (error) {
+    console.error('❌ Failed to fetch reminders:', error);
+    throw error;
+  }
+};
+
+export const createReminder = async (reminderData) => {
+  try {
+    const response = await api.post('/reminders/create', reminderData);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Failed to create reminder:', error);
+    throw error;
+  }
+};
+
+// Budget Functions
+export const getBudgets = async () => {
+  try {
+    const response = await api.get('/budgets');
+    return response.data;
+  } catch (error) {
+    console.error('❌ Failed to fetch budgets:', error);
+    throw error;
+  }
+};
+
+export const createBudget = async (budgetData) => {
+  try {
+    const response = await api.post('/budgets/create', budgetData);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Failed to create budget:', error);
+    throw error;
+  }
+};
+
+// Health Check
+export const healthCheck = async () => {
+  try {
+    const response = await axios.get('https://expensync-qru8.onrender.com/');
+    return response.data;
+  } catch (error) {
+    console.error('❌ Health check failed:', error);
+    throw error;
+  }
+};
+
+// Export the configured API instance
+export { api };
+export default api;

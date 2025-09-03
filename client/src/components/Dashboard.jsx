@@ -15,7 +15,13 @@ import BudgetGoalProgress from "./BudgetGoalProgress";
 import DebtOverview from "./DebtOverview";
 import NetWorthCard from "./NetWorthCard";
 import Layout from "./Layout";
-import { api } from "../api/api";
+// ✅ Import the centralized API functions instead of the api instance
+import {
+  getDashboardData,
+  getTransactions,
+  getBudgetGoals,
+  getDebts,
+} from "../api/api";
 
 const Dashboard = () => {
   const location = useLocation();
@@ -62,27 +68,38 @@ const Dashboard = () => {
     }
   }, [location]);
 
-  // ✅ Fetch all dashboard data
+  // ✅ Fetch all dashboard data using centralized API functions
   const fetchData = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
     setError(null);
 
     try {
+      // ✅ Use the centralized API functions instead of direct api calls
       const [dashboardRes, transactionsRes, budgetRes, debtsRes] =
         await Promise.all([
-          api.get("/dashboard"),
-          api.get("/transactions"),
-          api.get("/category-goals"),
-          api.get("/debts"),
+          getDashboardData(),
+          getTransactions(),
+          getBudgetGoals(),
+          getDebts(),
         ]);
 
-      const { stats } = dashboardRes.data;
-      setTotalIncome(stats.totalIncome || 0);
-      setTotalExpense(stats.totalExpenses || 0);
-      setTransactions(transactionsRes.data || []);
-      setBudgetGoals(budgetRes.data.categoryGoals || []);
-      setDebts(debtsRes.data || []);
+      // ✅ Handle dashboard response
+      if (dashboardRes.stats) {
+        setTotalIncome(dashboardRes.stats.totalIncome || 0);
+        setTotalExpense(dashboardRes.stats.totalExpenses || 0);
+      }
+
+      // ✅ Handle transactions response
+      setTransactions(Array.isArray(transactionsRes) ? transactionsRes : []);
+
+      // ✅ Handle budget goals response
+      setBudgetGoals(
+        Array.isArray(budgetRes?.categoryGoals) ? budgetRes.categoryGoals : []
+      );
+
+      // ✅ Handle debts response
+      setDebts(Array.isArray(debtsRes) ? debtsRes : []);
     } catch (err) {
       console.error("Data fetch error:", err);
       if (err.response?.status === 401) {
