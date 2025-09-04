@@ -1,7 +1,5 @@
 const Reminder = require("../models/Reminder");
 
-const Reminder = require("../models/Reminder");
-
 // CREATE REMINDER
 const createReminder = async (req, res) => {
   try {
