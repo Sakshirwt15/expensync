@@ -3,23 +3,23 @@ const Transaction = require("../models/Transaction");
 // @desc Create new transaction
 const createTransaction = async (req, res) => {
   try {
-    const { title, amount, category, note, tags, date } = req.body;
-    const userId = req.user.id;
+    const { title, amount, category, type, note, tags, date } = req.body;
 
-    // ✅ FIXED: Match the frontend AddTransaction component fields
-    if (!title || !amount || !category) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
+// Validate required fields
+if (!title || !amount || !category || !type) {
+  return res.status(400).json({ message: "Missing required fields" });
+}
 
-    const transaction = new Transaction({
-      userId: userId,  // ✅ FIXED: Use 'userId' instead of 'user'
-      title,           // ✅ FIXED: Use 'title' instead of 'type'
-      amount,
-      category,
-      note,            // ✅ FIXED: Use 'note' instead of 'description'
-      tags: tags || [], // ✅ FIXED: Include tags
-      date: date || new Date(),
-    });
+const transaction = new Transaction({
+  userId: userId,
+  title,
+  amount,
+  category,
+  type,           // ✅ Add this
+  note,
+  tags: tags || [],
+  date: date || new Date(),
+});
 
     const saved = await transaction.save();
     res.status(201).json(saved);
