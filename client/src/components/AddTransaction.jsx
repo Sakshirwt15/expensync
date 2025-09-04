@@ -46,9 +46,13 @@ const AddTransaction = ({ userId, onSuccess }) => {
       return;
     }
 
+    const numericAmount = parseFloat(amount);
+
+    // ✅ FIXED: Added type field based on amount value
     const transactionData = {
       title: name,
-      amount: parseInt(amount),
+      amount: numericAmount,
+      type: numericAmount < 0 ? "expense" : "income", // ✅ ADD this line
       category,
       note,
       tags: selectedTags,
@@ -103,11 +107,12 @@ const AddTransaction = ({ userId, onSuccess }) => {
             </label>
             <input
               type="number"
-              placeholder="e.g. -500 for expense"
+              placeholder="e.g. -500 for expense, 5000 for income"
               className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-blue-500 focus:outline-none text-slate-800 dark:text-white"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               required
+              step="0.01"
             />
           </div>
         </div>

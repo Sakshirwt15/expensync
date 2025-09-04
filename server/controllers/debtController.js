@@ -10,7 +10,8 @@ const createDebt = async (req, res) => {
         const newDebt = new Debt({
             name: req.body.name,
             amount: req.body.amount,
-            user: userId,  // Ensure this is set
+            userId: userId,
+  // Ensure this is set
         });
 
         // Save the debt document to the database
@@ -27,7 +28,8 @@ const createDebt = async (req, res) => {
 const getDebts = async (req, res) => {
     try {
         console.log("User ID: ", req.user); // Debugging line
-        const debts = await Debt.find({ user: req.user.id });
+        const debts = await Debt.find({ userId: req.user.id });
+
         res.status(200).json(debts);
     } catch (error) {
         res.status(500).json({ message: "Error fetching debts", error: error.message });
@@ -46,7 +48,7 @@ const deleteDebt = async (req, res) => {
         }
 
 
-        if (debt.user.toString() !== req.user.id.toString()) {
+        if (debt.userId.toString() !== req.user.id.toString()) {
             return res.status(403).json({ message: "Unauthorized" });
         }
 

@@ -21,9 +21,16 @@ const Charts = () => {
         // ✅ Calculate totals
         let income = 0,
           expense = 0;
+        // LINE 21-29: Fix the data calculation logic
         transactionsData.forEach((t) => {
-          if (t.type === "income") income += t.amount;
-          else expense += t.amount;
+          if (t.type === "income" || (t.amount > 0 && t.type !== "expense")) {
+            income += Math.abs(t.amount);
+          } else if (
+            t.type === "expense" ||
+            (t.amount < 0 && t.type !== "income")
+          ) {
+            expense += Math.abs(t.amount);
+          }
         });
         setTotalIncome(income);
         setTotalExpense(expense);

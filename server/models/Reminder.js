@@ -14,7 +14,7 @@ const reminderSchema = new mongoose.Schema({
         default: "Others"
     },
     date: {
-        type: String,
+        type: Date,
         required: true
     },
     isRecurring: {

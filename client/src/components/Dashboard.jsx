@@ -77,7 +77,7 @@ const Dashboard = () => {
     try {
       const [summaryRes, transactionsRes, budgetRes, debtsRes] =
         await Promise.all([
-          getSummaryData(), // ✅ fixed call
+          getSummary(), // Use getSummary instead of getSummaryData // ✅ fixed call
           getTransactions(),
           getBudgetGoals(),
           getDebts(),

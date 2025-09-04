@@ -4,7 +4,6 @@ import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL || "https://expensync-qru8.onrender.com";
 
 console.log("🔐 Token exists:", !!localStorage.getItem("token"));
-console.log("🔄 Fetching data from:", `${API_URL}/api/transactions`);
 
 const api = axios.create({
   baseURL: API_URL,
@@ -16,7 +15,7 @@ api.interceptors.request.use(
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log("🔐 Token added to request:", token.substring(0, 20) + "...");
+      console.log("🔐 Token added to request");
     }
     console.log("Making", config.method?.toUpperCase(), "request to:", config.url);
     return config;
@@ -43,38 +42,19 @@ api.interceptors.response.use(
   }
 );
 
-// ✅ FIXED API FUNCTIONS WITH CORRECT ENDPOINTS
-
 // Authentication
 export const login = (credentials) => api.post("/api/auth/login", credentials);
 export const signup = (userData) => api.post("/api/auth/signup", userData);
 
-// Transactions - FIXED: /api/transactions instead of /transactions
+// Transactions - ✅ FIXED: Removed sample data logic
 export const getTransactions = async () => {
   try {
     const response = await api.get("/api/transactions");
-    console.log("✅ Raw response:", response);
     console.log("✅ Transactions fetched:", response.data);
     console.log("✅ Number of transactions:", response.data?.length || 0);
     
-    // Use sample data if no transactions
-    if (!response.data || response.data.length === 0) {
-      console.log("📊 Using sample data for demonstration");
-      const sampleData = [
-        { _id: 1, title: "Sample Income", amount: 5000, category: "Income", type: "income", date: new Date() },
-        { _id: 2, title: "Sample Expense", amount: -1200, category: "Food", type: "expense", date: new Date() },
-        { _id: 3, title: "Sample Shopping", amount: -420, category: "Shopping", type: "expense", date: new Date() }
-      ];
-      
-      const totalIncome = 6500;
-      const totalExpense = 1620;
-      console.log("💰 Total Income:", totalIncome);
-      console.log("💸 Total Expense:", totalExpense);
-      
-      return sampleData;
-    }
-    
-    return response.data;
+    // Always return actual data from backend (can be empty array)
+    return response.data || [];
   } catch (error) {
     console.error("❌ Failed to fetch transactions:", error);
     throw error;
@@ -86,7 +66,19 @@ export const createTransaction = (transactionData) =>
 
 export const deleteTransaction = (id) => api.delete(`/api/transactions/${id}`);
 
-// Budget Goals - FIXED: /api/category-budget instead of /category-goals
+// ✅ ADDED: Transaction Summary function
+export const getTransactionSummary = async () => {
+  try {
+    const response = await api.get("/api/transactions/summary");
+    console.log("✅ Transaction summary fetched:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("❌ Failed to fetch transaction summary:", error);
+    throw error;
+  }
+};
+
+// Budget Goals
 export const getBudgetGoals = async () => {
   try {
     const response = await api.get("/api/category-budget");
@@ -101,7 +93,11 @@ export const getBudgetGoals = async () => {
 export const setBudgetGoals = (goalData) =>
   api.post("/api/category-budget", goalData);
 
-// Debts - FIXED: /api/debt instead of /debts  
+// ✅ ADDED: Delete budget goal function
+export const deleteBudgetGoal = (category) => 
+  api.delete(`/api/budget/${category}`);
+
+// Debts
 export const getDebts = async () => {
   try {
     const response = await api.get("/api/debt");
@@ -116,7 +112,7 @@ export const getDebts = async () => {
 export const createDebt = (debtData) => api.post("/api/debt", debtData);
 export const deleteDebt = (id) => api.delete(`/api/debt/${id}`);
 
-// Reminders - FIXED: /api/reminder instead of /reminders
+// Reminders
 export const getReminders = async () => {
   try {
     const response = await api.get("/api/reminder");
@@ -133,7 +129,7 @@ export const createReminder = (reminderData) =>
 
 export const deleteReminder = (id) => api.delete(`/api/reminder/${id}`);
 
-// Summary - FIXED: /api/summary instead of /summary and /dashboard  
+// Summary
 export const getSummary = async () => {
   try {
     const response = await api.get("/api/summary");
@@ -145,10 +141,8 @@ export const getSummary = async () => {
   }
 };
 
-// Dashboard data (alias for summary) - REMOVED /dashboard endpoint
-export const getSummaryData = getSummary; // ✅ Use summary endpoint for dashboard
-
-// Legacy support - keeping old function names but with fixed endpoints
-export const getDashboardData = getSummary; // ✅ Dashboard now uses summary
+// Legacy support - keeping old function names for compatibility
+export const getSummaryData = getSummary;
+export const getDashboardData = getSummary;
 
 export default api;

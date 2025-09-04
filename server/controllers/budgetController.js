@@ -6,13 +6,13 @@ const setCategoryGoal = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    let budget = await Budget.findOne({ user: userId, category });
+    let budget = await Budget.findOne({ userId: userId, category });
 
     if (budget) {
       budget.goal = goal;
       await budget.save();
     } else {
-      budget = new Budget({ user: userId, category, goal });
+      budget = new Budget({ userId: userId, category, goal });
       await budget.save();
     }
 
@@ -28,7 +28,8 @@ const getCategoryGoals = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    const budgets = await Budget.find({ user: userId });
+    const budgets = await Budget.find({ userId: userId });
+
     res.status(200).json(budgets);
   } catch (err) {
     console.error("Get Budgets Error:", err);
@@ -42,7 +43,7 @@ const deleteCategoryGoal = async (req, res) => {
   const { category } = req.params;
 
   try {
-    const result = await Budget.findOneAndDelete({ user: userId, category });
+    const result = await Budget.findOneAndDelete({ userId: userId, category });
 
     if (!result) {
       return res.status(404).json({ message: "Budget not found" });

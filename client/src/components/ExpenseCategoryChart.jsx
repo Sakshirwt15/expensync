@@ -22,8 +22,10 @@ const ExpenseCategoryChart = ({ transactions }) => {
   }
 
   // ✅ Group transactions by category (only expenses)
+  // LINE 18-24: Update the category totals calculation
   const categoryTotals = transactions.reduce((acc, t) => {
-    if (t.type === "expense" || t.amount < 0) {
+    // ✅ Check both type field and negative amounts
+    if (t.type === "expense" || (t.amount < 0 && t.type !== "income")) {
       const category = t.category || "Other";
       acc[category] = (acc[category] || 0) + Math.abs(t.amount);
     }

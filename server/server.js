@@ -33,18 +33,35 @@ mongoose
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-// Routes
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/budget", require("./routes/budgets")); // fixed
-app.use("/api/category-budget", require("./routes/categoryBudgetRoutes")); // fixed
-app.use("/api/debt", require("./routes/debts")); // fixed
-app.use("/api/reminder", require("./routes/reminders")); // fixed
-app.use("/api/summary", require("./routes/summary"));
-app.use("/api/transactions", require("./routes/transactions")); // fixed
+// Routes with proper error handling
+try {
+  app.use("/api/auth", require("./routes/auth"));
+  app.use("/api/budget", require("./routes/budgets"));
+  app.use("/api/category-budget", require("./routes/categoryBudgetRoutes"));
+  app.use("/api/debt", require("./routes/debts"));
+  app.use("/api/reminder", require("./routes/reminders"));
+  app.use("/api/summary", require("./routes/summary"));
+  app.use("/api/transactions", require("./routes/transactions"));
+  console.log("✅ All routes loaded successfully");
+} catch (error) {
+  console.error("❌ Error loading routes:", error.message);
+  console.error("Make sure all route files exist and export properly");
+}
 
 // Default route
 app.get("/", (req, res) => {
   res.send("🚀 ExpenseSync API is running...");
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error("❌ Server Error:", err.stack);
+  res.status(500).json({ message: "Something went wrong!" });
+});
+
+// 404 handler
+app.use("*", (req, res) => {
+  res.status(404).json({ message: "Route not found" });
 });
 
 // Start server

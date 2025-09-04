@@ -17,8 +17,10 @@ const setCategoryGoal = async (req, res) => {
       }
 
       await CategoryBudgetGoal.findOneAndUpdate(
-        { user: userId, category },
-        { goal, user: userId },
+        { userId: userId, category },
+
+        { goal, userId: userId },
+
         { upsert: true, new: true }
       );
     }
@@ -34,7 +36,7 @@ const setCategoryGoal = async (req, res) => {
 const getCategoryGoals = async (req, res) => {
   try {
     const userId = req.user.id;
-    const categoryGoals = await CategoryBudgetGoal.find({ user: userId });
+    const categoryGoals = await CategoryBudgetGoal.find({ userId: userId });
 
     res.status(200).json({
       categoryGoals: categoryGoals.map(goal => ({
