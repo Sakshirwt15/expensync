@@ -3,29 +3,44 @@ const Transaction = require("../models/Transaction");
 // @desc Create new transaction
 const createTransaction = async (req, res) => {
   try {
+    // ✅ FIXED: Get userId from the authenticated user
+    const userId = req.user.id;
     const { title, amount, category, type, note, tags, date } = req.body;
 
-// Validate required fields
-if (!title || !amount || !category || !type) {
-  return res.status(400).json({ message: "Missing required fields" });
-}
+    // Validate required fields
+    if (!title || !amount || !category || !type) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
 
-const transaction = new Transaction({
-  userId: userId,
-  title,
-  amount,
-  category,
-  type,           // ✅ Add this
-  note,
-  tags: tags || [],
-  date: date || new Date(),
-});
+    // Additional validation
+    if (!['income', 'expense'].includes(type)) {
+      return res.status(400).json({ message: "Type must be 'income' or 'expense'" });
+    }
+
+    if (typeof amount !== 'number' || amount <= 0) {
+      return res.status(400).json({ message: "Amount must be a positive number" });
+    }
+
+    const transaction = new Transaction({
+      userId: userId,  // ✅ Now properly defined
+      title,
+      amount,
+      category,
+      type,
+      note,
+      tags: tags || [],
+      date: date || new Date(),
+    });
 
     const saved = await transaction.save();
+    console.log("✅ Transaction created successfully:", saved._id);
     res.status(201).json(saved);
   } catch (err) {
     console.error("❌ Error creating transaction:", err);
-    res.status(500).json({ message: "Server error creating transaction" });
+    res.status(500).json({ 
+      message: "Server error creating transaction",
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };
 
@@ -33,7 +48,6 @@ const transaction = new Transaction({
 const getTransactions = async (req, res) => {
   try {
     const userId = req.user.id;
-    // ✅ FIXED: Use 'userId' instead of 'user'
     const transactions = await Transaction.find({ userId: userId }).sort({ date: -1 });
     res.json(transactions);
   } catch (err) {
@@ -48,7 +62,6 @@ const deleteTransaction = async (req, res) => {
     const userId = req.user.id;
     const { id } = req.params;
 
-    // ✅ FIXED: Use 'userId' instead of 'user'
     const deleted = await Transaction.findOneAndDelete({ _id: id, userId: userId });
 
     if (!deleted) {
@@ -67,7 +80,6 @@ const getTransactionSummary = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // ✅ FIXED: Use 'userId' instead of 'user'
     const summary = await Transaction.aggregate([
       { $match: { userId: userId } },
       {
@@ -85,9 +97,9 @@ const getTransactionSummary = async (req, res) => {
   }
 };
 
-module.exports = { 
-  createTransaction, 
-  getTransactions, 
-  deleteTransaction, 
-  getTransactionSummary 
+module.exports = {
+  createTransaction,
+  getTransactions,
+  deleteTransaction,
+  getTransactionSummary
 };

@@ -112,12 +112,32 @@ export const getTransactions = async () => {
 
 export const createTransaction = async (data) => {
   try {
-    console.log("➕ Creating transaction:", data);
+    // ✅ Enhanced logging - show the actual data being sent
+    console.log("➕ Creating transaction with data:", JSON.stringify(data, null, 2));
+    
+    // ✅ Validate data on frontend before sending
+    if (!data.title || !data.amount || !data.category || !data.type) {
+      throw new Error("Missing required fields: title, amount, category, and type are required");
+    }
+
+    if (!['income', 'expense'].includes(data.type)) {
+      throw new Error("Type must be 'income' or 'expense'");
+    }
+
+    if (typeof data.amount !== 'number' || data.amount <= 0) {
+      throw new Error("Amount must be a positive number");
+    }
+
     const response = await api.post("/api/transactions", data);
-    console.log("✅ Transaction created successfully");
+    console.log("✅ Transaction created successfully:", response.data);
     return response;
   } catch (error) {
-    console.error("❌ Failed to create transaction:", error);
+    console.error("❌ Failed to create transaction:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      sentData: data
+    });
     throw error;
   }
 };
