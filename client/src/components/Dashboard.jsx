@@ -1,4 +1,4 @@
-import jwtDecode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import { useEffect, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import {
