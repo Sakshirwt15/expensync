@@ -3,7 +3,9 @@ import ExpenseChart from "./ExpenseChart";
 import ExpenseCategoryChart from "./ExpenseCategoryChart";
 import Layout from "./Layout";
 import { motion } from "framer-motion";
-import { getTransactions, getSummary } from "../api/api"; // ✅ removed getDashboardData
+
+// ✅ Import API functions
+import { getTransactions, getSummary } from "../api/api";
 
 const Charts = () => {
   const [transactions, setTransactions] = useState([]);
@@ -14,14 +16,13 @@ const Charts = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // ✅ Fetch transactions
+        // Fetch transactions
         const transactionsData = await getTransactions();
         setTransactions(transactionsData);
 
-        // ✅ Calculate totals
+        // Calculate totals
         let income = 0,
           expense = 0;
-        // LINE 21-29: Fix the data calculation logic
         transactionsData.forEach((t) => {
           if (t.type === "income" || (t.amount > 0 && t.type !== "expense")) {
             income += Math.abs(t.amount);
@@ -35,7 +36,7 @@ const Charts = () => {
         setTotalIncome(income);
         setTotalExpense(expense);
 
-        // ✅ Fetch summary instead of dashboard
+        // ✅ Fetch summary
         const summaryData = await getSummary();
         setSummary(summaryData);
       } catch (error) {
@@ -54,13 +55,11 @@ const Charts = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        {/* Income vs Expense */}
         <div className="bg-white p-4 rounded-2xl shadow-md">
           <h2 className="text-lg font-semibold mb-4">Income vs Expense</h2>
           <ExpenseChart totalIncome={totalIncome} totalExpense={totalExpense} />
         </div>
 
-        {/* Expense Breakdown */}
         <div className="bg-white p-4 rounded-2xl shadow-md">
           <h2 className="text-lg font-semibold mb-4">Expense Breakdown</h2>
           <ExpenseCategoryChart transactions={transactions} />
