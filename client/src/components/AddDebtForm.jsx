@@ -10,9 +10,10 @@ const AddDebtForm = ({ onDebtAdded }) => {
   const [error, setError] = useState("");
 
   const token = localStorage.getItem("token");
+  // ✅ FIXED: Use /api/debt instead of /api/debts/create
   const API_URL = `${
     import.meta.env.VITE_API_URL || "http://localhost:5000"
-  }/api/debts/create`;
+  }/api/debt`;
 
   const handleChange = (e) => {
     const { name, value } = e.target;

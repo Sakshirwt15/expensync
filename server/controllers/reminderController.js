@@ -1,21 +1,25 @@
 const Reminder = require("../models/Reminder");
 
+const Reminder = require("../models/Reminder");
+
 // CREATE REMINDER
 const createReminder = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { title, description, dueDate, category } = req.body;
+    const { title, amount, category, date, isRecurring } = req.body;
 
-    if (!title || !dueDate) {
-      return res.status(400).json({ message: "Title and due date are required" });
+    // ✅ FIXED: Match frontend form fields
+    if (!title || !amount || !date) {
+      return res.status(400).json({ message: "Title, amount and date are required" });
     }
 
     const newReminder = new Reminder({
       userId,
       title,
-      description,
-      dueDate,
-      category,
+      amount: parseFloat(amount), // ✅ Ensure amount is number
+      category: category || "Others",
+      date, // ✅ Use 'date' instead of 'dueDate'
+      isRecurring: isRecurring || false,
     });
 
     const savedReminder = await newReminder.save();
@@ -34,7 +38,7 @@ const createReminder = async (req, res) => {
 const getReminders = async (req, res) => {
   try {
     const userId = req.user.id;
-    const reminders = await Reminder.find({ userId }).sort({ dueDate: 1 });
+    const reminders = await Reminder.find({ userId }).sort({ date: 1 });
 
     res.status(200).json({
       message: "Reminders fetched successfully",

@@ -21,7 +21,8 @@ const TransactionReminders = () => {
       try {
         setLoading(true);
         console.log("Fetching reminders...");
-        const res = await api.get("/reminders");
+        // ✅ FIXED: Use /api/reminder instead of /reminders
+        const res = await api.get("/api/reminder");
 
         // Ensure we always set an array
         const reminderData = Array.isArray(res.data)
@@ -61,7 +62,8 @@ const TransactionReminders = () => {
     try {
       setLoading(true);
       console.log("Creating reminder:", form);
-      const res = await api.post("/reminders/create", form);
+      // ✅ FIXED: Use /api/reminder/create instead of /reminders/create
+      const res = await api.post("/api/reminder/create", form);
       setReminders((prev) => [...prev, res.data.reminder]);
       setForm({
         title: "",
@@ -88,7 +90,8 @@ const TransactionReminders = () => {
     try {
       setLoading(true);
       console.log("Deleting reminder:", id);
-      await api.delete(`/reminders/${id}`);
+      // ✅ FIXED: Use /api/reminder/:id instead of /reminders/:id
+      await api.delete(`/api/reminder/${id}`);
       setReminders((prev) => prev.filter((r) => r._id !== id));
       console.log("✅ Reminder deleted successfully");
     } catch (err) {
@@ -102,7 +105,8 @@ const TransactionReminders = () => {
   const refreshReminders = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/reminders");
+      // ✅ FIXED: Use /api/reminder instead of /reminders
+      const res = await api.get("/api/reminder");
       const reminderData = Array.isArray(res.data)
         ? res.data
         : res.data?.reminders || [];

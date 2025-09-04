@@ -24,7 +24,10 @@ const CategoryBudgetGoals = ({ goals, setGoals }) => {
         goal: parseFloat(goal) || 0,
       }));
 
-      const response = await api.post("/category-goals/set", { categoryGoals });
+      // ✅ FIXED: Use /api/category-budget instead of /category-goals/set
+      const response = await api.post("/api/category-budget", {
+        categoryGoals,
+      });
       console.log(response.data);
       alert("Category goals saved successfully!");
     } catch (error) {
